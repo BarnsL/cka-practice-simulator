@@ -31,8 +31,16 @@ go build -o cka-sim ./cmd/cka-sim
 
 ## Run
 
+### Grade a repaired pod
+
 ```bash
-./cka-sim --namespace default --pod nginx-pod --image nginx:1.25
+./cka-sim grade --namespace default --pod nginx-pod --image nginx:1.25
+```
+
+### Inject a broken pod image
+
+```bash
+./cka-sim inject --namespace default --pod nginx-pod --broken-image nginx:no-such-tag
 ```
 
 ## Test
@@ -48,6 +56,12 @@ go test ./...
 Verifies a pod is Running and uses the expected image.
 
 This is the first grading slice for the simulator: it models a common repair task where a candidate must correct a pod image and wait for the workload to become healthy again.
+
+### Pod Image Injector
+
+Creates or updates a pod so its first container uses a deliberately broken image.
+
+That gives the learner a repeatable starting state before the grader checks whether the repair was completed successfully.
 
 ## Testing without a cluster
 
