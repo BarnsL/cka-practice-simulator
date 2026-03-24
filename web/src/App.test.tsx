@@ -57,6 +57,9 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Load Mission' })[0])
     expect(screen.getByText('Node scheduling clinic ready')).toBeInTheDocument()
 
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard' }))
+    expect(screen.getByText('Mini dashboard')).toBeInTheDocument()
+
     fireEvent.click(screen.getByRole('button', { name: 'Tutorial' }))
     expect(screen.getByText(/step 1 of 3/i)).toBeInTheDocument()
 
@@ -81,6 +84,9 @@ describe('App', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Open Free Play' })[0])
     expect(screen.getAllByText('Sandbox ready')[0]).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard' }))
+    expect(screen.getByText(/CLI to visual focus/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Run free play command' }))
     expect(screen.getByText('Namespace created')).toBeInTheDocument()

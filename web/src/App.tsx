@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import LearningDashboard from './components/LearningDashboard'
 import TerminalPanel from './components/TerminalPanel'
 import {
   buildCommandBreakdown,
@@ -30,7 +31,7 @@ import {
 } from './lib/simulator'
 import './App.css'
 
-type LearnTab = 'guide' | 'commands' | 'values' | 'tutorial'
+type LearnTab = 'guide' | 'commands' | 'values' | 'tutorial' | 'dashboard'
 type WorkspaceMode = 'mission' | 'free-play'
 
 const freePlayTutorial: TutorialStep[] = [
@@ -74,6 +75,7 @@ function App() {
   const [learnTab, setLearnTab] = useState<LearnTab>('guide')
   const [tutorialStepIndex, setTutorialStepIndex] = useState(0)
   const [selectedGlossaryTerm, setSelectedGlossaryTerm] = useState(missions[0].glossary[0].term)
+  const [latestCommand, setLatestCommand] = useState<string | null>(null)
 
   const activeMission = missionById[selectedMissionId] as Mission
   const freePlayReference = useMemo(() => getFreePlayReference(), [])
@@ -122,6 +124,7 @@ function App() {
     setLearnTab('guide')
     setTutorialStepIndex(0)
     setSelectedGlossaryTerm(nextMission.glossary[0].term)
+    setLatestCommand(null)
   }
 
   function enterMissionMode(missionId: string) {
@@ -142,9 +145,12 @@ function App() {
     setLearnTab('guide')
     setTutorialStepIndex(0)
     setSelectedGlossaryTerm(freePlayReference.glossary[0].term)
+    setLatestCommand(null)
   }
 
   const runTerminalCommand = (command: string) => {
+    setLatestCommand(command)
+
     if (workspaceMode === 'mission') {
       const result = runMissionCommand(activeMission, missionSession, command)
       setMissionSession(result.session)
@@ -176,6 +182,7 @@ function App() {
       setFreePlayState(createFreePlayState())
       setFeedbackTitle('Sandbox reset')
       setFeedbackBody('The free-play sandbox was reset to a clean starting state so you can experiment again.')
+      setLatestCommand(null)
       return
     }
 
@@ -185,6 +192,7 @@ function App() {
     setFeedbackBody(result.feedbackBody ?? activeMission.feedback.startBody)
     setSolutionVisible(false)
     setRevealedHints(0)
+    setLatestCommand(null)
   }
 
   const checkMyFix = () => {
@@ -268,6 +276,7 @@ function App() {
       setRevealedHints(0)
       setTutorialStepIndex(0)
       setSelectedGlossaryTerm(freePlayReference.glossary[0].term)
+      setLatestCommand(null)
       return
     }
 
@@ -560,6 +569,13 @@ function App() {
             </div>
             <div className="learn-tabs">
               <button
+                className={`tab-button${learnTab === 'dashboard' ? ' tab-button-active' : ''}`}
+                onClick={() => setLearnTab('dashboard')}
+                title="Open the learner-friendly visual dashboard."
+              >
+                Dashboard
+              </button>
+              <button
                 className={`tab-button${learnTab === 'guide' ? ' tab-button-active' : ''}`}
                 onClick={() => setLearnTab('guide')}
                 title="Open the guide and glossary for the current mode."
@@ -589,6 +605,18 @@ function App() {
               </button>
             </div>
           </div>
+
+          {learnTab === 'dashboard' && (
+            <LearningDashboard
+              mode={workspaceMode}
+              mission={activeMission}
+              commands={currentCommands}
+              freePlayState={freePlayState}
+              latestCommand={latestCommand}
+              progressLabel={progressLabel}
+              workspaceStatusLabel={workspaceStatusLabel}
+            />
+          )}
 
           {learnTab === 'guide' && (
             <>
