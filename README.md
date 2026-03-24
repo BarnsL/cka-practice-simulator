@@ -61,7 +61,7 @@ cd web
 npm run dev
 ```
 
-The GUI is intentionally educational. It now includes a working in-app simulated CLI, twenty-seven mission labs mapped across official Kubernetes docs topics, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
+The GUI is intentionally educational. It now includes a working in-app simulated CLI, thirty-two mission labs mapped across official Kubernetes docs topics, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
 
 ## Test
 
@@ -120,6 +120,11 @@ Current simulated missions in the GUI:
 - Pod DNS policy fix
 - Pod Security Baseline review
 - ServiceAccount token mount control
+- kubectl client verification
+- kind cluster bootstrap
+- minikube startup verification
+- Hello Minikube deployment
+- kubeadm learning path choice
 
 ## Official references
 

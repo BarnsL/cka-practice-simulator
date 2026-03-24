@@ -23,7 +23,7 @@ npm run dev
 
 ## Current scope
 
-The current GUI ships with twenty-seven simulated missions:
+The current GUI ships with thirty-two simulated missions:
 
 - pod image repair
 - node scheduling clinic
@@ -52,5 +52,10 @@ The current GUI ships with twenty-seven simulated missions:
 - pod DNS policy fix
 - Pod Security Baseline review
 - ServiceAccount token mount control
+- kubectl client verification
+- kind cluster bootstrap
+- minikube startup verification
+- Hello Minikube deployment
+- kubeadm learning path choice
 
-These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> verify loop while the backend API layer continues to evolve. The latest mission batch was added from official docs coverage areas including labels/selectors, namespaces, finalizers, EndpointSlices, DNS behavior, Pod Security Standards, and ServiceAccounts.
+These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> verify loop while the backend API layer continues to evolve. The latest mission batches were added from official docs coverage areas including labels/selectors, namespaces, finalizers, EndpointSlices, DNS behavior, Pod Security Standards, ServiceAccounts, and the learning-environment setup flow for kubectl, kind, minikube, Hello Minikube, and kubeadm readiness.
