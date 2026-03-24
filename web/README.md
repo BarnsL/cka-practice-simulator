@@ -8,7 +8,7 @@ The web UI is designed to teach Kubernetes concepts while the learner practices:
 
 - multiple simulated mission cards explain what each exercise is for
 - buttons and tooltips reveal the simulator workflow
-- the terminal panel keeps the experience CLI-oriented
+- the terminal panel includes a working simulated command line for modeled `kubectl` commands
 - glossary, command, and value explanations help the learner understand what the grader is checking
 - a tutorial tab gives a structured, step-by-step learning path
 
@@ -23,11 +23,27 @@ npm run dev
 
 ## Current scope
 
-The current GUI ships with four simulated missions:
+The current GUI ships with twenty simulated missions:
 
 - pod image repair
 - node scheduling clinic
 - persistent volume binding workshop
 - RBAC access mission
+- deployment rollout recovery
+- readiness probe repair
+- ConfigMap key correction
+- secret environment repair
+- service selector mismatch
+- ingress backend correction
+- CrashLoopBackOff arguments repair
+- taint and toleration match
+- namespace context cleanup
+- job completion repair
+- CronJob schedule correction
+- NetworkPolicy access restore
+- resource request tuning
+- ServiceAccount binding repair
+- DaemonSet image repair
+- StatefulSet service wiring
 
-These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> grade loop while the backend API layer continues to evolve.
+These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> verify loop while the backend API layer continues to evolve.

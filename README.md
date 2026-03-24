@@ -61,7 +61,7 @@ cd web
 npm run dev
 ```
 
-The GUI is intentionally educational. It includes multiple simulated missions, learning-oriented buttons and tooltips, an embedded terminal-style practice panel, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
+The GUI is intentionally educational. It now includes a working in-app simulated CLI, twenty mission labs, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
 
 ## Test
 
@@ -89,7 +89,7 @@ The unit tests use `k8s.io/client-go/kubernetes/fake`, so they do not need a liv
 
 The `self-test` command uses that same fake-client approach to give you a runnable local executable test path.
 
-The GUI currently uses the same idea for its first screen: it teaches the simulator workflow locally before live backend endpoints are wired into the web app.
+The GUI currently teaches the simulator workflow locally before live backend endpoints are wired into the web app. The terminal now accepts modeled `kubectl` commands for each mission, so learners can practice a realistic inspect -> repair -> verify loop instead of only reading static output.
 
 Current simulated missions in the GUI:
 
@@ -97,6 +97,22 @@ Current simulated missions in the GUI:
 - Node scheduling clinic
 - Persistent volume binding workshop
 - RBAC access mission
+- Deployment rollout recovery
+- Readiness probe repair
+- ConfigMap key correction
+- Secret environment repair
+- Service selector mismatch
+- Ingress backend correction
+- CrashLoopBackOff arguments repair
+- Taint and toleration match
+- Namespace context cleanup
+- Job completion repair
+- CronJob schedule correction
+- NetworkPolicy access restore
+- Resource request tuning
+- ServiceAccount binding repair
+- DaemonSet image repair
+- StatefulSet service wiring
 
 ## Official references
 
