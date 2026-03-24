@@ -2,6 +2,11 @@
 
 A Go CLI that evaluates Certified Kubernetes Administrator practice scenarios against a real or fake Kubernetes cluster.
 
+## Interfaces
+
+- `cka-sim.exe` for CLI-first practice
+- `web/` for the learning-focused GUI
+
 ## Prerequisites
 
 - Go 1.21+
@@ -17,6 +22,14 @@ go mod tidy
 
 ```bash
 go build -o cka-sim ./cmd/cka-sim
+```
+
+### Build the web GUI
+
+```bash
+cd web
+npm install
+npm run build
 ```
 
 ## Run
@@ -40,6 +53,15 @@ go build -o cka-sim ./cmd/cka-sim
 ```
 
 This runs an end-to-end inject -> repair -> grade flow with the Kubernetes fake client, so it works even before you have a kubeconfig or local cluster.
+
+### Run the learning GUI
+
+```bash
+cd web
+npm run dev
+```
+
+The first GUI slice is intentionally educational. It includes a scenario catalog, learning-oriented buttons and tooltips, an embedded terminal-style practice panel, glossary help for Kubernetes fields, and a guided pod-image exercise that teaches the inject -> inspect -> repair -> grade loop.
 
 ## Test
 
@@ -66,6 +88,8 @@ That gives the learner a repeatable starting state before the grader checks whet
 The unit tests use `k8s.io/client-go/kubernetes/fake`, so they do not need a live Kubernetes cluster.
 
 The `self-test` command uses that same fake-client approach to give you a runnable local executable test path.
+
+The GUI currently uses the same idea for its first screen: it teaches the simulator workflow locally before live backend endpoints are wired into the web app.
 
 ## Official references
 
