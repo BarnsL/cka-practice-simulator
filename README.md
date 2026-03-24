@@ -2,20 +2,10 @@
 
 A Go CLI that evaluates Certified Kubernetes Administrator practice scenarios against a real or fake Kubernetes cluster.
 
-## Goal
-
-This repository is the start of a CKA practice simulator built around the Kubernetes API as the grading source of truth.
-
-## Working conventions
-
-- Source code should be annotated where grading logic, Kubernetes API behavior, or scenario assumptions are non-obvious.
-- Comments should explain why the simulator checks a condition, not restate the code.
-- Project memory is maintained in the Obsidian vault at `C:\Users\barns\Desktop\Projects\OBSIDIAN CODEX MEMORY`.
-
 ## Prerequisites
 
 - Go 1.21+
-- `kubectl` configured for a cluster when running against live state
+- `kubectl` configured (for live mode)
 
 ## First-time setup
 
@@ -43,6 +33,14 @@ go build -o cka-sim ./cmd/cka-sim
 ./cka-sim inject --namespace default --pod nginx-pod --broken-image nginx:no-such-tag
 ```
 
+### Run the built-in local test
+
+```bash
+./cka-sim self-test
+```
+
+This runs an end-to-end inject -> repair -> grade flow with the Kubernetes fake client, so it works even before you have a kubeconfig or local cluster.
+
 ## Test
 
 ```bash
@@ -66,6 +64,8 @@ That gives the learner a repeatable starting state before the grader checks whet
 ## Testing without a cluster
 
 The unit tests use `k8s.io/client-go/kubernetes/fake`, so they do not need a live Kubernetes cluster.
+
+The `self-test` command uses that same fake-client approach to give you a runnable local executable test path.
 
 ## Official references
 
