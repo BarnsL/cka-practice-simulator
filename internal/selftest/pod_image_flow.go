@@ -29,10 +29,10 @@ type Report struct {
 // path runnable on any workstation without a live cluster.
 func RunPodImageFlow(ctx context.Context) (Report, error) {
 	const (
-		namespace     = "default"
-		podName       = "demo-pod"
-		container     = "app"
-		brokenImage   = "nginx:no-such-tag"
+		namespace    = "default"
+		podName      = "demo-pod"
+		container    = "app"
+		brokenImage  = "nginx:no-such-tag"
 		expectedImage = "nginx:1.25"
 	)
 

@@ -61,7 +61,7 @@ cd web
 npm run dev
 ```
 
-The first GUI slice is intentionally educational. It includes a scenario catalog, learning-oriented buttons and tooltips, an embedded terminal-style practice panel, glossary help for Kubernetes fields, and a guided pod-image exercise that teaches the inject -> inspect -> repair -> grade loop.
+The GUI is intentionally educational. It includes multiple simulated missions, learning-oriented buttons and tooltips, an embedded terminal-style practice panel, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
 
 ## Test
 
@@ -91,9 +91,15 @@ The `self-test` command uses that same fake-client approach to give you a runnab
 
 The GUI currently uses the same idea for its first screen: it teaches the simulator workflow locally before live backend endpoints are wired into the web app.
 
+Current simulated missions in the GUI:
+
+- Pod image repair
+- Node scheduling clinic
+- Persistent volume binding workshop
+- RBAC access mission
+
 ## Official references
 
 - [Kubernetes API overview](https://kubernetes.io/docs/reference/using-api/)
 - [Kubernetes API reference](https://kubernetes.io/docs/reference/generated/kubernetes-api/)
 - [client-go](https://github.com/kubernetes/client-go)
-- [CNCF CKA program](https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/)

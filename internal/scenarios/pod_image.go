@@ -21,7 +21,7 @@ type Scenario interface {
 }
 
 // PodImageScenario checks that a specific pod is Running and uses the
-// expected container image. This mirrors a common CKA task where a pod
+// expected container image.  This mirrors a common CKA task where a pod
 // has been misconfigured with a wrong image and the candidate must fix it.
 type PodImageScenario struct {
 	namespace     string
@@ -43,7 +43,7 @@ func (s *PodImageScenario) Name() string {
 }
 
 // Run fetches the pod and validates two conditions:
-//  1. Phase == Running — the pod scheduler has bound and started the pod.
+//  1. Phase == Running  — the pod scheduler has bound and started the pod.
 //  2. The first container's image matches expectedImage exactly.
 //
 // We check only the first container because the scenario is intentionally

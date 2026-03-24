@@ -46,7 +46,7 @@ func TestGrader_Fail(t *testing.T) {
 }
 
 func TestGrader_Error(t *testing.T) {
-	client := fake.NewSimpleClientset()
+	client := fake.NewSimpleClientset() // pod doesn't exist → error
 	g := grader.New(client)
 	s := scenarios.NewPodImageScenario("default", "mypod", "nginx:1.25")
 	result := g.Grade(context.Background(), s)

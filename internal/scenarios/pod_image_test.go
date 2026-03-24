@@ -70,7 +70,7 @@ func TestPodImageScenario_NotRunning(t *testing.T) {
 }
 
 func TestPodImageScenario_PodNotFound(t *testing.T) {
-	client := fake.NewSimpleClientset()
+	client := fake.NewSimpleClientset() // empty cluster
 	s := scenarios.NewPodImageScenario("default", "missing-pod", "nginx:1.25")
 	ok, _, err := s.Run(context.Background(), client)
 	if err == nil {

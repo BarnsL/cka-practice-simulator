@@ -21,4 +21,20 @@ describe('App', () => {
     expect(screen.getByText('Great work')).toBeInTheDocument()
     expect(screen.getByText(/corrected image and a Running Pod/i)).toBeInTheDocument()
   })
+
+  it('lets the learner switch missions and open tutorial/dictionaries', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Load Mission' })[0])
+    expect(screen.getByText('Node scheduling clinic ready')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tutorial' }))
+    expect(screen.getByText(/step 1 of 3/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commands' }))
+    expect(screen.getByText(/kubectl get nodes --show-labels/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Values' }))
+    expect(screen.getByText('lab-west')).toBeInTheDocument()
+  })
 })

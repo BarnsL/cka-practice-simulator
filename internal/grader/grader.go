@@ -13,7 +13,7 @@ import (
 // GradeResult holds the outcome of a single scenario evaluation.
 type GradeResult struct {
 	ScenarioName string
-	// Score is 0 (fail) or 1 (pass). Future scenarios may use fractional
+	// Score is 0 (fail) or 1 (pass).  Future scenarios may use fractional
 	// scores; keeping it int here is intentional conservatism.
 	Score   int
 	Status  string

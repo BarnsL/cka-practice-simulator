@@ -1,198 +1,88 @@
 import { useMemo, useState } from 'react'
 import TerminalPanel from './components/TerminalPanel'
+import { missionById, missions, type Mission, type WorkspaceStatus } from './data/missions'
 import './App.css'
 
-type WorkspaceStatus = 'idle' | 'broken' | 'in-progress' | 'passed'
-
-type ScenarioCard = {
-  id: string
-  title: string
-  difficulty: string
-  learningGoal: string
-  description: string
-  docsUrl: string
-  tooltip: string
-  available: boolean
-}
-
-type GlossaryItem = {
-  term: string
-  definition: string
-}
-
-type FieldGuide = {
-  field: string
-  explanation: string
-}
-
-const scenarios: ScenarioCard[] = [
-  {
-    id: 'pod-image',
-    title: 'Pod image repair',
-    difficulty: 'Beginner',
-    learningGoal: 'Learn how Pod phase and container image fields affect workload health.',
-    description:
-      'Fix a Pod that was injected with a broken image, then verify that the workload reaches Running.',
-    docsUrl: 'https://kubernetes.io/docs/concepts/workloads/pods/',
-    tooltip: 'This is the first live learning path backed by the simulator.',
-    available: true,
-  },
-  {
-    id: 'node-scheduling',
-    title: 'Scheduling and node placement',
-    difficulty: 'Soon',
-    learningGoal: 'Understand node selectors, taints, and scheduling clues.',
-    description: 'Future exercise focused on why Pods land on specific nodes.',
-    docsUrl: 'https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/',
-    tooltip: 'Planned next: this will teach nodeName, selectors, and scheduling constraints.',
-    available: false,
-  },
-  {
-    id: 'storage-binding',
-    title: 'Persistent volume binding',
-    difficulty: 'Soon',
-    learningGoal: 'Learn how PVCs, PVs, and storage classes interact.',
-    description: 'Future exercise focused on diagnosing why a claim does not bind.',
-    docsUrl: 'https://kubernetes.io/docs/concepts/storage/persistent-volumes/',
-    tooltip: 'Planned: storage labs will explain binding, access modes, and capacity mismatches.',
-    available: false,
-  },
-]
-
-const hints = [
-  'Inspect the Pod before changing anything. Start with `kubectl get pod demo-pod -o wide`.',
-  'The failing field is in the Pod spec. Look closely at `spec.containers[0].image`.',
-  'The grader also checks runtime health. A correct image alone is not enough until the Pod becomes Running.',
-]
-
-const glossary: GlossaryItem[] = [
-  {
-    term: 'Pod',
-    definition:
-      'The smallest deployable unit in Kubernetes. It wraps one or more containers that share networking and storage.',
-  },
-  {
-    term: 'spec.containers.image',
-    definition:
-      'The image reference Kubernetes will try to pull for a container. A bad tag commonly causes image pull failures.',
-  },
-  {
-    term: 'status.phase',
-    definition:
-      'A coarse summary of Pod lifecycle state such as Pending, Running, Succeeded, Failed, or Unknown.',
-  },
-  {
-    term: 'kubeconfig',
-    definition:
-      'A client configuration file that tells kubectl or this simulator how to reach and authenticate to a cluster.',
-  },
-]
-
-const fieldGuide: FieldGuide[] = [
-  {
-    field: 'spec.containers[0].image',
-    explanation:
-      'The simulator injects a bad image here. Fixing it is the direct repair action for this exercise.',
-  },
-  {
-    field: 'status.phase',
-    explanation:
-      'The grader expects Running because the exercise is not complete until the workload is actually healthy.',
-  },
-  {
-    field: 'metadata.name',
-    explanation:
-      'This identifies the exact object the grader reads. In this first scenario, that target is demo-pod.',
-  },
-]
-
-const officialDocs = [
-  {
-    label: 'Pods',
-    href: 'https://kubernetes.io/docs/concepts/workloads/pods/',
-  },
-  {
-    label: 'Kubernetes API overview',
-    href: 'https://kubernetes.io/docs/reference/using-api/',
-  },
-  {
-    label: 'Pod lifecycle',
-    href: 'https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/',
-  },
-]
+type LearnTab = 'guide' | 'commands' | 'values' | 'tutorial'
 
 function App() {
-  const activeScenario = scenarios[0]
+  const [selectedMissionId, setSelectedMissionId] = useState(missions[0].id)
   const [status, setStatus] = useState<WorkspaceStatus>('idle')
   const [feedbackTitle, setFeedbackTitle] = useState('Ready to learn')
   const [feedbackBody, setFeedbackBody] = useState(
-    'Start the pod image exercise to inject a broken state and see which Kubernetes fields matter.',
+    'Choose a simulated mission to review the goal, then start the exercise when you are ready.',
   )
   const [revealedHints, setRevealedHints] = useState(0)
   const [solutionVisible, setSolutionVisible] = useState(false)
   const [guidedRepairApplied, setGuidedRepairApplied] = useState(false)
-  const [selectedGlossary, setSelectedGlossary] = useState<GlossaryItem>(glossary[0])
+  const [learnTab, setLearnTab] = useState<LearnTab>('guide')
+  const [tutorialStepIndex, setTutorialStepIndex] = useState(0)
+  const [selectedGlossaryTerm, setSelectedGlossaryTerm] = useState(missions[0].glossary[0].term)
 
-  // This small state machine is intentionally pedagogical. It lets the first
-  // GUI teach the inject -> inspect -> repair -> grade loop before the live
-  // HTTP-backed simulator endpoints are added behind these same controls.
+  const activeMission = missionById[selectedMissionId] as Mission
+  const selectedGlossary =
+    activeMission.glossary.find((item) => item.term === selectedGlossaryTerm) ??
+    activeMission.glossary[0]
+
+  const selectMission = (missionId: string) => {
+    const nextMission = missionById[missionId] as Mission
+    setSelectedMissionId(missionId)
+    setStatus('idle')
+    setFeedbackTitle(`${nextMission.title} ready`)
+    setFeedbackBody(nextMission.whyItMatters)
+    setRevealedHints(0)
+    setSolutionVisible(false)
+    setGuidedRepairApplied(false)
+    setLearnTab('guide')
+    setTutorialStepIndex(0)
+    setSelectedGlossaryTerm(nextMission.glossary[0].term)
+  }
+
+  // The first GUI layer remains a simulated state machine on purpose. It gives
+  // learners a stable, annotated environment for understanding mission logic
+  // before every control is wired to live backend endpoints.
   const terminalLines = useMemo(() => {
-    const lines = [
-      'CKA Practice Simulator Web Terminal',
-      '---------------------------------',
-      'PS> kubectl config current-context',
-    ]
+    const lines = [...activeMission.terminal.intro]
 
     if (status === 'idle') {
-      lines.push('No scenario injected yet.')
-      lines.push('Tip: Start Scenario to create a broken Pod image exercise.')
+      lines.push(`Selected mission: ${activeMission.title}`)
+      lines.push('No simulated scenario is active yet.')
+      lines.push('Tip: click Start Scenario to inject the learning state.')
       return lines
     }
 
-    lines.push('kind-learning-cluster')
-    lines.push('PS> kubectl get pod demo-pod')
-
     if (status === 'broken') {
-      lines.push('demo-pod   0/1   Pending')
-      lines.push('PS> kubectl describe pod demo-pod')
-      lines.push('Image: nginx:no-such-tag')
+      lines.push(...activeMission.terminal.broken)
     }
 
     if (status === 'in-progress') {
-      lines.push('demo-pod   0/1   Pending')
-      lines.push('Hint: investigate spec.containers[0].image and wait for Running.')
+      lines.push(...activeMission.terminal.inProgress)
     }
 
     if (revealedHints > 0) {
-      lines.push(`Hints unlocked: ${revealedHints}`)
+      lines.push(`Hints unlocked: ${revealedHints}/${activeMission.hints.length}`)
     }
 
     if (solutionVisible) {
-      lines.push('Suggested repair:')
-      lines.push('kubectl set image pod/demo-pod app=nginx:1.25')
-      lines.push('kubectl wait --for=condition=Ready pod/demo-pod --timeout=90s')
+      lines.push('Suggested solution path:')
+      activeMission.solutionCommands.forEach((command) => lines.push(command))
     }
 
     if (guidedRepairApplied) {
-      lines.push('PS> kubectl set image pod/demo-pod app=nginx:1.25')
-      lines.push('pod/demo-pod image updated')
-      lines.push('PS> kubectl get pod demo-pod')
-      lines.push('demo-pod   1/1   Running')
+      lines.push(...activeMission.terminal.repaired)
     }
 
     if (status === 'passed') {
-      lines.push('Grade result: PASS')
+      lines.push(...activeMission.terminal.passed)
     }
 
     return lines
-  }, [guidedRepairApplied, revealedHints, solutionVisible, status])
+  }, [activeMission, guidedRepairApplied, revealedHints, solutionVisible, status])
 
   const startScenario = () => {
     setStatus('broken')
-    setFeedbackTitle('Scenario injected')
-    setFeedbackBody(
-      'The simulator has created a broken Pod image state. Your job is to inspect the Pod, correct the image, and verify that the Pod reaches Running.',
-    )
+    setFeedbackTitle(activeMission.feedback.startTitle)
+    setFeedbackBody(activeMission.feedback.startBody)
     setGuidedRepairApplied(false)
     setSolutionVisible(false)
     setRevealedHints(0)
@@ -201,30 +91,26 @@ function App() {
   const checkMyFix = () => {
     if (status === 'idle') {
       setFeedbackTitle('No exercise running')
-      setFeedbackBody('Start the scenario first so the grader has something to evaluate.')
+      setFeedbackBody('Start the simulated mission first so the grader has something to evaluate.')
       return
     }
 
     if (guidedRepairApplied) {
       setStatus('passed')
-      setFeedbackTitle('Great work')
-      setFeedbackBody(
-        'The simulated grader sees the corrected image and a Running Pod. This is the same mental loop you will use on a live cluster.',
-      )
+      setFeedbackTitle(activeMission.feedback.passTitle)
+      setFeedbackBody(activeMission.feedback.passBody)
       return
     }
 
     setStatus('in-progress')
-    setFeedbackTitle('Not fixed yet')
-    setFeedbackBody(
-      'The Pod is still not Running. Focus on the image field and remember that success means both the right image and a healthy runtime state.',
-    )
+    setFeedbackTitle(activeMission.feedback.failTitle)
+    setFeedbackBody(activeMission.feedback.failBody)
   }
 
   const showHint = () => {
-    setRevealedHints((current) => Math.min(current + 1, hints.length))
+    setRevealedHints((current) => Math.min(current + 1, activeMission.hints.length))
     if (status === 'idle') {
-      setStatus('broken')
+      startScenario()
     }
   }
 
@@ -232,54 +118,71 @@ function App() {
     setSolutionVisible(true)
     setFeedbackTitle('Solution revealed')
     setFeedbackBody(
-      'Use the solution as a study aid: note which command changed the image and why waiting for Running matters to the grader.',
+      'Use the command list as a study aid. The goal is to understand why each command changes the observed Kubernetes state.',
     )
   }
 
   const applyGuidedRepair = () => {
     setGuidedRepairApplied(true)
-    setFeedbackTitle('Repair simulated')
-    setFeedbackBody(
-      'The guided repair has updated the image and Pod health. Run Check My Fix next to see how the grader responds.',
-    )
+    setFeedbackTitle(activeMission.feedback.repairTitle)
+    setFeedbackBody(activeMission.feedback.repairBody)
   }
 
   const resetScenario = () => {
     setStatus('idle')
-    setFeedbackTitle('Ready to learn')
-    setFeedbackBody(
-      'The workspace is reset. Start again when you want a fresh attempt at the pod image exercise.',
-    )
+    setFeedbackTitle(`${activeMission.title} reset`)
+    setFeedbackBody('The simulated mission is reset and ready for another learning pass.')
     setGuidedRepairApplied(false)
     setSolutionVisible(false)
     setRevealedHints(0)
   }
+
+  const openGuide = (tab: LearnTab) => {
+    setLearnTab(tab)
+  }
+
+  const currentTutorialStep = activeMission.tutorial[tutorialStepIndex]
 
   return (
     <div className="app-shell">
       <header className="hero-panel">
         <div>
           <p className="eyebrow">Purple Industries learning GUI</p>
-          <h1>Learn Kubernetes by fixing real-looking scenarios</h1>
+          <h1>Learn Kubernetes by fixing simulated scenarios</h1>
           <p className="hero-copy">
-            This interface is designed for learning, not passive monitoring. You inject a broken
-            state, inspect what matters, get guided hints, and then grade your fix.
+            This interface is designed for learning, not passive monitoring. You choose a mission,
+            inject a simulated failure, inspect what matters, use guided help, and then grade your
+            fix.
           </p>
         </div>
         <div className="hero-actions">
           <button
             className="primary-button"
             onClick={startScenario}
-            title="Create a broken cluster state for this exercise."
+            title="Create a broken simulated cluster state for the selected mission."
           >
             Start Scenario
           </button>
+          <button
+            className="secondary-button"
+            onClick={() => openGuide('tutorial')}
+            title="Open the built-in tutorial and follow the learning steps."
+          >
+            Open Tutorial
+          </button>
+          <button
+            className="secondary-button"
+            onClick={() => openGuide('commands')}
+            title="Open the command and value dictionary for the selected mission."
+          >
+            Open Guide & Dictionary
+          </button>
           <a
             className="secondary-link"
-            href={activeScenario.docsUrl}
+            href={activeMission.docsUrl}
             target="_blank"
             rel="noreferrer"
-            title="Open the official Kubernetes documentation for this exercise."
+            title="Open the official Kubernetes documentation for the selected mission."
           >
             View Official Docs
           </a>
@@ -289,37 +192,36 @@ function App() {
       <main className="workspace-grid">
         <section className="panel scenario-panel">
           <div className="panel-heading">
-            <h2>Scenario catalog</h2>
+            <h2>Missions</h2>
             <span className={`status-chip status-chip-${status}`}>{status.replace('-', ' ')}</span>
           </div>
           <p className="section-copy">
-            Start with a small, teachable exercise. Later scenarios will expand into scheduling,
-            storage, and RBAC.
+            Every card below is usable now. These are simulated learning missions that teach
+            Kubernetes reasoning before live backend mission endpoints are added.
           </p>
           <div className="scenario-list">
-            {scenarios.map((scenario) => (
+            {missions.map((mission) => (
               <article
-                key={scenario.id}
-                className={`scenario-card${scenario.available ? ' scenario-card-active' : ''}`}
+                key={mission.id}
+                className={`scenario-card${mission.id === activeMission.id ? ' scenario-card-active' : ''}`}
               >
                 <div className="scenario-card-top">
-                  <h3>{scenario.title}</h3>
-                  <span className="difficulty-pill">{scenario.difficulty}</span>
+                  <h3>{mission.title}</h3>
+                  <span className="difficulty-pill">{mission.difficulty}</span>
                 </div>
-                <p className="scenario-description">{scenario.description}</p>
+                <p className="scenario-description">{mission.description}</p>
                 <p className="scenario-goal">
-                  <strong>Learning goal:</strong> {scenario.learningGoal}
+                  <strong>Learning goal:</strong> {mission.learningGoal}
                 </p>
                 <div className="scenario-actions">
                   <button
                     className="secondary-button"
-                    disabled={!scenario.available}
-                    onClick={startScenario}
-                    title={scenario.tooltip}
+                    onClick={() => selectMission(mission.id)}
+                    title={mission.tooltip}
                   >
-                    {scenario.available ? 'Preview Learning Goals' : 'Coming Soon'}
+                    {mission.id === activeMission.id ? 'Selected Mission' : 'Load Mission'}
                   </button>
-                  <a href={scenario.docsUrl} target="_blank" rel="noreferrer">
+                  <a href={mission.docsUrl} target="_blank" rel="noreferrer">
                     Docs
                   </a>
                 </div>
@@ -330,36 +232,39 @@ function App() {
 
         <section className="panel workspace-panel">
           <div className="panel-heading">
-            <h2>Exercise workspace</h2>
-            <p className="panel-subtitle">Pod image repair</p>
+            <div>
+              <h2>Exercise workspace</h2>
+              <p className="panel-subtitle">{activeMission.title}</p>
+            </div>
+            <span className="mission-focus">{activeMission.whyItMatters}</span>
           </div>
 
           <div className="control-row">
             <button
               className="primary-button"
               onClick={startScenario}
-              title="Create a broken cluster state for this exercise."
+              title="Create a broken simulated cluster state for this mission."
             >
               Inject Scenario
             </button>
             <button
               className="secondary-button"
               onClick={checkMyFix}
-              title="Grade the current cluster state against the exercise requirements."
+              title="Grade the current simulated cluster state against the mission requirements."
             >
               Check My Fix
             </button>
             <button
               className="secondary-button"
               onClick={showHint}
-              title="Reveal a small clue without giving away the answer."
+              title="Reveal the next small clue without jumping straight to the answer."
             >
               Show Hint
             </button>
             <button
               className="secondary-button"
               onClick={revealSolution}
-              title="Show the target repair steps and explain why they work."
+              title="Show the target repair path and explain why it works."
             >
               Reveal Solution
             </button>
@@ -374,7 +279,7 @@ function App() {
             <button
               className="ghost-button"
               onClick={resetScenario}
-              title="Delete or recreate the exercise resources so you can retry."
+              title="Reset the simulated mission so you can try again."
             >
               Reset
             </button>
@@ -387,19 +292,19 @@ function App() {
               <h3>{feedbackTitle}</h3>
               <p>{feedbackBody}</p>
               <ul className="feedback-list">
-                <li>Grader checks the image field and Pod runtime state.</li>
-                <li>Hints are progressive so you can learn without jumping straight to the answer.</li>
-                <li>Solution text explains not just what to run, but why it works.</li>
+                <li>The grader teaches what success means for the selected mission.</li>
+                <li>Hints are progressive so you can learn without skipping straight to the answer.</li>
+                <li>Every simulated mission mirrors the same operational loop: inspect, repair, validate.</li>
               </ul>
             </article>
 
             <article className="hint-card">
               <h3>Progressive hints</h3>
               {revealedHints === 0 ? (
-                <p>No hints revealed yet. Try to inspect the Pod first.</p>
+                <p>No hints revealed yet. Try to inspect the simulated cluster state first.</p>
               ) : (
                 <ol>
-                  {hints.slice(0, revealedHints).map((hint) => (
+                  {activeMission.hints.slice(0, revealedHints).map((hint) => (
                     <li key={hint}>{hint}</li>
                   ))}
                 </ol>
@@ -409,65 +314,186 @@ function App() {
         </section>
 
         <aside className="panel learn-panel">
-          <div className="panel-heading">
-            <h2>Learn while you practice</h2>
-            <p className="panel-subtitle">Buttons and tooltips exist to teach the API, not hide it.</p>
+          <div className="panel-heading learn-panel-header">
+            <div>
+              <h2>Guide, dictionary, and tutorial</h2>
+              <p className="panel-subtitle">
+                This sidebar stays focused on the selected mission so help is easy to reach while
+                you practice.
+              </p>
+            </div>
+            <div className="learn-tabs">
+              <button
+                className={`tab-button${learnTab === 'guide' ? ' tab-button-active' : ''}`}
+                onClick={() => openGuide('guide')}
+                title="Open the mission guide and glossary."
+              >
+                Guide
+              </button>
+              <button
+                className={`tab-button${learnTab === 'commands' ? ' tab-button-active' : ''}`}
+                onClick={() => openGuide('commands')}
+                title="Open the command dictionary for the selected mission."
+              >
+                Commands
+              </button>
+              <button
+                className={`tab-button${learnTab === 'values' ? ' tab-button-active' : ''}`}
+                onClick={() => openGuide('values')}
+                title="Open the dictionary of important values and statuses."
+              >
+                Values
+              </button>
+              <button
+                className={`tab-button${learnTab === 'tutorial' ? ' tab-button-active' : ''}`}
+                onClick={() => openGuide('tutorial')}
+                title="Open the step-by-step tutorial for the selected mission."
+              >
+                Tutorial
+              </button>
+            </div>
           </div>
 
-          <section className="learn-section">
-            <h3>What you are learning</h3>
-            <p>
-              This exercise teaches how a Pod can fail because of a bad image and why healthy
-              runtime state matters to a grader built on the Kubernetes API.
-            </p>
-          </section>
+          {learnTab === 'guide' && (
+            <>
+              <section className="learn-section">
+                <h3>What you are learning</h3>
+                <p>{activeMission.whyItMatters}</p>
+              </section>
 
-          <section className="learn-section">
-            <h3>Explain this</h3>
-            <div className="glossary-grid">
-              {glossary.map((item) => (
-                <button
-                  key={item.term}
-                  className={`glossary-chip${selectedGlossary.term === item.term ? ' glossary-chip-selected' : ''}`}
-                  onClick={() => setSelectedGlossary(item)}
-                  title="Describe what this Kubernetes object or field does in plain English."
-                >
-                  {item.term}
-                </button>
-              ))}
-            </div>
-            <div className="glossary-definition">
-              <strong>{selectedGlossary.term}</strong>
-              <p>{selectedGlossary.definition}</p>
-            </div>
-          </section>
+              <section className="learn-section">
+                <h3>Mission guide</h3>
+                <ol className="guide-list">
+                  {activeMission.quickGuide.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </section>
 
-          <section className="learn-section">
-            <h3>API field inspector</h3>
-            <ul className="field-list">
-              {fieldGuide.map((item) => (
-                <li key={item.field}>
-                  <span className="field-name" title="See which Kubernetes fields the grader is checking.">
-                    {item.field}
-                  </span>
-                  <p>{item.explanation}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
+              <section className="learn-section">
+                <h3>Explain this</h3>
+                <div className="glossary-grid">
+                  {activeMission.glossary.map((item) => (
+                    <button
+                      key={item.term}
+                      className={`glossary-chip${selectedGlossary.term === item.term ? ' glossary-chip-selected' : ''}`}
+                      onClick={() => setSelectedGlossaryTerm(item.term)}
+                      title="Describe what this Kubernetes object or field does in plain English."
+                    >
+                      {item.term}
+                    </button>
+                  ))}
+                </div>
+                <div className="glossary-definition">
+                  <strong>{selectedGlossary.term}</strong>
+                  <p>{selectedGlossary.definition}</p>
+                </div>
+              </section>
 
-          <section className="learn-section">
-            <h3>Official docs</h3>
-            <ul className="docs-list">
-              {officialDocs.map((doc) => (
-                <li key={doc.href}>
-                  <a href={doc.href} target="_blank" rel="noreferrer">
-                    {doc.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
+              <section className="learn-section">
+                <h3>API field inspector</h3>
+                <ul className="field-list">
+                  {activeMission.fieldGuide.map((item) => (
+                    <li key={item.field}>
+                      <span
+                        className="field-name"
+                        title="See which Kubernetes fields the grader is checking."
+                      >
+                        {item.field}
+                      </span>
+                      <p>{item.explanation}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="learn-section">
+                <h3>Common mistakes</h3>
+                <ul className="guide-list">
+                  {activeMission.commonMistakes.map((mistake) => (
+                    <li key={mistake}>{mistake}</li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
+
+          {learnTab === 'commands' && (
+            <section className="learn-section">
+              <h3>Command dictionary</h3>
+              <p>
+                These are the most useful commands for the current mission. Each one is explained
+                so the learner sees why the command exists, not just its syntax.
+              </p>
+              <ul className="dictionary-list">
+                {activeMission.commands.map((entry) => (
+                  <li key={entry.command}>
+                    <code>{entry.command}</code>
+                    <p>{entry.purpose}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {learnTab === 'values' && (
+            <section className="learn-section">
+              <h3>Values and status dictionary</h3>
+              <p>
+                Kubernetes failures often become easier once you recognize what key values mean in
+                context.
+              </p>
+              <ul className="dictionary-list">
+                {activeMission.values.map((entry) => (
+                  <li key={entry.value}>
+                    <code>{entry.value}</code>
+                    <p>{entry.meaning}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {learnTab === 'tutorial' && (
+            <>
+              <section className="learn-section">
+                <h3>Mission tutorial</h3>
+                <p>
+                  Follow these steps in order if you want a structured walkthrough of the current
+                  simulated mission.
+                </p>
+              </section>
+              <article className="tutorial-card">
+                <p className="tutorial-step-count">
+                  Step {tutorialStepIndex + 1} of {activeMission.tutorial.length}
+                </p>
+                <h3>{currentTutorialStep.title}</h3>
+                <p>{currentTutorialStep.body}</p>
+                <div className="tutorial-actions">
+                  <button
+                    className="ghost-button"
+                    disabled={tutorialStepIndex === 0}
+                    onClick={() => setTutorialStepIndex((current) => Math.max(current - 1, 0))}
+                    title="Go to the previous tutorial step."
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className="secondary-button"
+                    disabled={tutorialStepIndex === activeMission.tutorial.length - 1}
+                    onClick={() =>
+                      setTutorialStepIndex((current) =>
+                        Math.min(current + 1, activeMission.tutorial.length - 1),
+                      )
+                    }
+                    title="Go to the next tutorial step."
+                  >
+                    Next
+                  </button>
+                </div>
+              </article>
+            </>
+          )}
         </aside>
       </main>
     </div>
