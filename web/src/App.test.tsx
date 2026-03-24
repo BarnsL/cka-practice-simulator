@@ -24,6 +24,9 @@ vi.mock('./components/TerminalPanel', () => ({
       >
         Run ready check
       </button>
+      <button type="button" onClick={() => onSubmitCommand('kubectl create namespace training')}>
+        Run free play command
+      </button>
     </div>
   ),
 }))
@@ -62,5 +65,27 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Values' }))
     expect(screen.getByText('lab-role=west')).toBeInTheDocument()
+  })
+
+  it('progresses hints and supports the free play sandbox', () => {
+    render(<App />)
+
+    expect(screen.getByText(/No hints revealed yet/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show Hint' }))
+    expect(screen.getByText('Hint 1')).toBeInTheDocument()
+    expect(screen.getAllByText(/kubectl get pod demo-pod -o wide/i)[0]).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show Hint' }))
+    expect(screen.getAllByText(/spec\.containers\[0\]\.image/i)[0]).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open Free Play' })[0])
+    expect(screen.getAllByText('Sandbox ready')[0]).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run free play command' }))
+    expect(screen.getByText('Namespace created')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commands' }))
+    expect(screen.getAllByText(/kubectl create deployment demo-api --image=nginx:1.25/i)[0]).toBeInTheDocument()
   })
 })

@@ -13,6 +13,7 @@ export type LearningFieldGuide = {
 export type LearningCommandEntry = {
   command: string
   purpose: string
+  breakdown?: CommandPart[]
 }
 
 export type LearningValueEntry = {
@@ -23,6 +24,12 @@ export type LearningValueEntry = {
 export type TutorialStep = {
   title: string
   body: string
+}
+
+export type CommandPart = {
+  value: string
+  role: string
+  explanation: string
 }
 
 export type SimulatedInspector = {
@@ -136,9 +143,95 @@ function tutorial(inspectBody: string, repairBody: string, verifyBody: string): 
   ]
 }
 
+function explainToken(token: string, index: number, tokens: string[]): CommandPart {
+  const previous = tokens[index - 1]
+
+  if (index === 0) {
+    return {
+      value: token,
+      role: 'Executable',
+      explanation: 'This starts the Kubernetes CLI and tells the simulator that the learner is issuing a kubectl-style command.',
+    }
+  }
+
+  if (index === 1) {
+    return {
+      value: token,
+      role: 'Primary verb',
+      explanation: 'This is the main kubectl action, such as reading, creating, patching, labeling, or exposing a resource.',
+    }
+  }
+
+  if (token.startsWith('--')) {
+    return {
+      value: token,
+      role: 'Flag',
+      explanation: 'This flag modifies how kubectl runs the command, often by changing scope, output, or a resource setting.',
+    }
+  }
+
+  if (token.startsWith('-')) {
+    return {
+      value: token,
+      role: 'Short flag',
+      explanation: 'This is a compact flag form that changes command behavior or output formatting.',
+    }
+  }
+
+  if (token.includes('=')) {
+    return {
+      value: token,
+      role: 'Assignment',
+      explanation: 'This token assigns a value, often for a label, image, selector, or patch-like setting in the command.',
+    }
+  }
+
+  if (previous?.startsWith('--')) {
+    return {
+      value: token,
+      role: 'Flag value',
+      explanation: 'This value belongs to the flag immediately before it and supplies the concrete setting for that option.',
+    }
+  }
+
+  if (token.includes('/')) {
+    return {
+      value: token,
+      role: 'Qualified resource',
+      explanation: 'This token identifies a concrete Kubernetes object by combining its resource type and name.',
+    }
+  }
+
+  if (index === 2) {
+    return {
+      value: token,
+      role: 'Target resource',
+      explanation: 'This is the resource type or object that kubectl will operate on in the current step.',
+    }
+  }
+
+  return {
+    value: token,
+    role: 'Argument',
+    explanation: 'This token provides additional scope or data needed to complete the Kubernetes action.',
+  }
+}
+
+export function buildCommandBreakdown(command: string): CommandPart[] {
+  return command
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token, index, tokens) => explainToken(token, index, tokens))
+}
+
 function mission(definition: Omit<Mission, 'solutionCommands'> & { solutionCommands?: string[] }): Mission {
   return {
     ...definition,
+    commands: definition.commands.map((entry) => ({
+      ...entry,
+      breakdown: entry.breakdown ?? buildCommandBreakdown(entry.command),
+    })),
     solutionCommands:
       definition.solutionCommands ?? definition.cli.actions.map((item) => item.aliases[0]),
   }

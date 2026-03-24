@@ -112,6 +112,10 @@
   background: rgba(15, 23, 42, 0.58);
 }
 
+.free-play-card {
+  border-style: dashed;
+}
+
 .scenario-card-active {
   border-color: rgba(192, 132, 252, 0.6);
   box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.2);
@@ -244,10 +248,10 @@
 }
 
 .mission-focus {
-  max-width: 18rem;
+  max-width: 42rem;
   color: #cbd5e1;
   font-size: 0.92rem;
-  text-align: right;
+  text-align: left;
 }
 
 .control-row {
@@ -434,6 +438,24 @@
 .dictionary-list li,
 .guide-list li {
   margin-bottom: 0.8rem;
+}
+
+.command-breakdown-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  color: #cbd5e1;
+}
+
+.command-breakdown-list li {
+  margin-bottom: 0.45rem;
+}
+
+.command-breakdown-list strong {
+  color: #e9d5ff;
+}
+
+.command-breakdown-list code {
+  margin: 0 0.2rem;
 }
 
 .dictionary-list code {

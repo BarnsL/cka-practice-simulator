@@ -61,7 +61,7 @@ cd web
 npm run dev
 ```
 
-The GUI is intentionally educational. It now includes a working in-app simulated CLI, thirty-two mission labs mapped across official Kubernetes docs topics, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
+The GUI is intentionally educational. It now includes a working in-app simulated CLI, a stateful free-play kubectl sandbox, thirty-two mission labs mapped across official Kubernetes docs topics, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
 
 ## Test
 
@@ -89,7 +89,7 @@ The unit tests use `k8s.io/client-go/kubernetes/fake`, so they do not need a liv
 
 The `self-test` command uses that same fake-client approach to give you a runnable local executable test path.
 
-The GUI currently teaches the simulator workflow locally before live backend endpoints are wired into the web app. The terminal now accepts modeled `kubectl` commands for each mission, so learners can practice a realistic inspect -> repair -> verify loop instead of only reading static output.
+The GUI currently teaches the simulator workflow locally before live backend endpoints are wired into the web app. The terminal now accepts modeled `kubectl` commands for each mission, shows token-by-token command breakdowns in the learning sidebar, and also offers a broader free-play mode where common kubectl actions mutate a simulated cluster state that later commands can inspect.
 
 Current simulated missions in the GUI:
 
