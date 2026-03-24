@@ -23,7 +23,7 @@ npm run dev
 
 ## Current scope
 
-The current GUI ships with twenty simulated missions:
+The current GUI ships with twenty-seven simulated missions:
 
 - pod image repair
 - node scheduling clinic
@@ -45,5 +45,12 @@ The current GUI ships with twenty simulated missions:
 - ServiceAccount binding repair
 - DaemonSet image repair
 - StatefulSet service wiring
+- label selector repair
+- cross-namespace service lookup
+- finalizer troubleshooting
+- EndpointSlice readiness review
+- pod DNS policy fix
+- Pod Security Baseline review
+- ServiceAccount token mount control
 
-These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> verify loop while the backend API layer continues to evolve.
+These are intentionally backed by local educational state rather than live HTTP endpoints so the GUI can already teach the inject -> inspect -> repair -> verify loop while the backend API layer continues to evolve. The latest mission batch was added from official docs coverage areas including labels/selectors, namespaces, finalizers, EndpointSlices, DNS behavior, Pod Security Standards, and ServiceAccounts.

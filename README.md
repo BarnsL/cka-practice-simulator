@@ -61,7 +61,7 @@ cd web
 npm run dev
 ```
 
-The GUI is intentionally educational. It now includes a working in-app simulated CLI, twenty mission labs, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
+The GUI is intentionally educational. It now includes a working in-app simulated CLI, twenty-seven mission labs mapped across official Kubernetes docs topics, learning-oriented buttons and tooltips, a step-by-step tutorial, and easy-access dictionaries for commands, values, glossary terms, and grader-checked fields.
 
 ## Test
 
@@ -113,6 +113,13 @@ Current simulated missions in the GUI:
 - ServiceAccount binding repair
 - DaemonSet image repair
 - StatefulSet service wiring
+- Label selector repair
+- Cross-namespace service lookup
+- Finalizer troubleshooting
+- EndpointSlice readiness review
+- Pod DNS policy fix
+- Pod Security Baseline review
+- ServiceAccount token mount control
 
 ## Official references
 
